@@ -112,6 +112,14 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Implemented `CheckInRepository` to write `DailyLogEntry`
       - Added in-app `CheckInSheet` replicating the actions
 
+   - 2026-09-09: Grid view (Step 6)
+      - Added basic `ScheduleGridScreen` rendering the same data as list
+      - Prepared navigation to allow a toggle (to be wired with segmented control)
+
+   - 2026-09-09: Copy-day use case (Step 7)
+      - Implemented `CopyDayUseCase` ensuring independent row creation
+      - Extended DAO with day query to support copy-day
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

@@ -32,6 +32,9 @@ interface ScheduleBlockDao {
     @Query("SELECT * FROM schedule_blocks WHERE dayEpoch = :dayEpoch ORDER BY startMinute")
     fun observeForDay(dayEpoch: Long): Flow<List<ScheduleBlock>>
 
+    @Query("SELECT * FROM schedule_blocks WHERE dayEpoch = :dayEpoch ORDER BY startMinute")
+    suspend fun getForDay(dayEpoch: Long): List<ScheduleBlock>
+
     @Query(
         "SELECT * FROM schedule_blocks " ||
         "WHERE (dayEpoch + (startMinute * 60000)) > :nowMillis " ||

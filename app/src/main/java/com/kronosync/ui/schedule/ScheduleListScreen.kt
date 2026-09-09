@@ -22,6 +22,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.kronosync.domain.CopyDayUseCase
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +57,7 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
             IconButton(onClick = { showSheet = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Quick add")
             }
+            // Placeholder for copy-day UI trigger (Step 7), wires later
         }
     }
 
