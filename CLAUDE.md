@@ -91,6 +91,11 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Created Room database and Hilt module wiring
       - Added unit tests for Template and ScheduleBlock DAOs (in-memory DB)
 
+   - 2026-09-09: Schedule List UI (Step 3)
+      - Implemented Schedule List screen with quick-add bottom sheet (time minutes + task name)
+      - Wired ViewModel (StateFlow) and Repository to Room DAO
+      - Hooked into NavHost as the Schedule tab; uses Material 3 components
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine
