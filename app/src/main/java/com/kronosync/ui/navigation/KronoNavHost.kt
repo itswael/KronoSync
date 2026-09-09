@@ -22,9 +22,7 @@ import com.kronosync.ui.schedule.ScheduleScreen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kronosync.ui.schedule.grid.ScheduleGridScreen
-import com.kronosync.ui.analytics.DayAnalyticsScreen
-import com.kronosync.ui.analytics.WeekAnalyticsScreen
-import com.kronosync.ui.analytics.MonthAnalyticsScreen
+import com.kronosync.ui.analytics.AnalyticsTabScreen
 
 private enum class TopDest(val route: String, val label: String, val icon: ImageVector) {
     Schedule("schedule", "Schedule", Icons.Outlined.Schedule),
@@ -64,7 +62,7 @@ fun KronoNavHost() {
             startDestination = TopDest.Schedule.route
         ) {
             composable(TopDest.Schedule.route) { ScheduleScreen() }
-            composable(TopDest.Analytics.route) { DayAnalyticsScreen() }
+            composable(TopDest.Analytics.route) { AnalyticsTabScreen() }
             composable(TopDest.Settings.route) { Text("Settings") }
         }
     }

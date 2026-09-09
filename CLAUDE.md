@@ -124,6 +124,10 @@ Work through these roughly in order — each builds on the last. Don't start bac
                - Implemented Day, Week, Month analytics with aggregator and tonal stat cards
                - Wired Analytics tab to show Day view; Week/Month screens added and ready to integrate under tab UI
 
+               - 2026-09-09: Motivational quote bank (Step 9)
+                  - Bundled local quote bank with encouraging, gentle, and neutral sets
+                  - Adaptive selection hooked into Analytics screens based on recent Done/Partial/Skipped
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine
