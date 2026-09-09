@@ -31,6 +31,13 @@ interface ScheduleBlockDao {
 
     @Query("SELECT * FROM schedule_blocks WHERE dayEpoch = :dayEpoch ORDER BY startMinute")
     fun observeForDay(dayEpoch: Long): Flow<List<ScheduleBlock>>
+
+    @Query(
+        "SELECT * FROM schedule_blocks " ||
+        "WHERE (dayEpoch + (startMinute * 60000)) > :nowMillis " ||
+        "ORDER BY (dayEpoch + (startMinute * 60000)) ASC LIMIT 1"
+    )
+    suspend fun getNextUpcoming(nowMillis: Long): ScheduleBlock?
 }
 
 @Dao

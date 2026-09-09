@@ -100,6 +100,13 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Added Kotlin Compose Compiler Gradle plugin for Kotlin 2.0 (org.jetbrains.kotlin.plugin.compose)
       - Removed deprecated composeOptions kotlinCompilerExtensionVersion
 
+   - 2026-09-09: Alarm-chaining scaffolding (Step 4)
+      - Implemented AlarmScheduler using AlarmManager.setExactAndAllowWhileIdle
+      - Added StartAlertReceiver to show notifications and chain next
+      - Added BootRescheduleReceiver with rescheduler to re-sync after boot
+      - Declared RECEIVE_BOOT_COMPLETED and SCHEDULE_EXACT_ALARM in manifest
+      - Wired ScheduleViewModel to schedule on add; Notifier creates high-priority alerts
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kronosync.data.db.ScheduleBlock
 import com.kronosync.data.repository.ScheduleRepository
+import com.kronosync.data.alarm.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
-    private val repo: ScheduleRepository
+    private val repo: ScheduleRepository,
+    private val alarmScheduler: AlarmScheduler
 ) : ViewModel() {
 
     data class UiState(
@@ -50,7 +52,9 @@ class ScheduleViewModel @Inject constructor(
                 durationMinutes = 60,
                 title = title
             )
-            repo.add(block)
+            val id = repo.add(block)
+            val saved = block.copy(id = id)
+            alarmScheduler.scheduleExact(saved)
         }
     }
 }
