@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import com.kronosync.domain.CopyDayUseCase
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.kronosync.ui.schedule.parseTargetDaysCsv
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +44,7 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
     val ui = vm.state
     val scope = rememberCoroutineScope()
     var showSheet by remember { mutableStateOf(false) }
+    var showCopy by remember { mutableStateOf(false) }
     val sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -57,7 +60,9 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
             IconButton(onClick = { showSheet = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Quick add")
             }
-            // Placeholder for copy-day UI trigger (Step 7), wires later
+            IconButton(onClick = { showCopy = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Copy day")
+            }
         }
     }
 
@@ -69,6 +74,17 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
                 scope.launch { sheetState.hide() }.invokeOnCompletion { showSheet = false }
             },
             sheetState = sheetState
+        )
+    }
+
+    if (showCopy) {
+        CopyDaySheet(
+            onDismiss = { showCopy = false },
+            onCopy = { csv ->
+                val targets = parseTargetDaysCsv(csv)
+                scope.launch { vm.copyTo(targets) }
+                showCopy = false
+            }
         )
     }
 }

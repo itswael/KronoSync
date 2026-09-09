@@ -14,11 +14,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
+import com.kronosync.domain.CopyDayUseCase
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val repo: ScheduleRepository,
-    private val alarmScheduler: AlarmScheduler
+    private val alarmScheduler: AlarmScheduler,
+    private val copyDay: CopyDayUseCase
 ) : ViewModel() {
 
     data class UiState(
@@ -56,5 +60,19 @@ class ScheduleViewModel @Inject constructor(
             val saved = block.copy(id = id)
             alarmScheduler.scheduleExact(saved)
         }
+    }
+
+    fun copyTo(targetDayEpochs: List<Long>) {
+        viewModelScope.launch {
+            copyDay(_state.value.dayEpoch, targetDayEpochs)
+        }
+    }
+}
+
+fun parseTargetDaysCsv(csv: String): List<Long> {
+    val fmt = DateTimeFormatter.ISO_LOCAL_DATE
+    return csv.split(',').mapNotNull { token ->
+        val t = token.trim()
+        if (t.isEmpty()) null else LocalDate.parse(t, fmt).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
     }
 }
