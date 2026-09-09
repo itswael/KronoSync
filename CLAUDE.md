@@ -107,6 +107,11 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Declared RECEIVE_BOOT_COMPLETED and SCHEDULE_EXACT_ALARM in manifest
       - Wired ScheduleViewModel to schedule on add; Notifier creates high-priority alerts
 
+   - 2026-09-09: Check-in flow (Step 5)
+      - Added inline notification actions (Done/Partial/Skipped) wired to `CheckInReceiver`
+      - Implemented `CheckInRepository` to write `DailyLogEntry`
+      - Added in-app `CheckInSheet` replicating the actions
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

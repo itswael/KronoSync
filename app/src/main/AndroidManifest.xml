@@ -32,5 +32,9 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".data.alarm.CheckInReceiver"
+            android:exported="false"/>
     </application>
 </manifest>

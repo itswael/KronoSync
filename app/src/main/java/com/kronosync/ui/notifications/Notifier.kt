@@ -5,6 +5,10 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import android.app.PendingIntent
+import android.content.Intent
+import com.kronosync.data.alarm.CheckInReceiver
+import com.kronosync.data.alarm.AlarmScheduler
 import androidx.core.app.NotificationManagerCompat
 import com.kronosync.R
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,8 +31,27 @@ class Notifier @Inject constructor(
             .setContentTitle("It's time")
             .setContentText(title)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .addAction(buildAction("Done", "Done"))
+            .addAction(buildAction("Partial", "Partial"))
+            .addAction(buildAction("Skipped", "Skipped"))
         NotificationManagerCompat.from(context).notify(title.hashCode(), builder.build())
     }
+
+    private fun buildAction(label: String, status: String): NotificationCompat.Action {
+        val intent = Intent(context, CheckInReceiver::class.java).apply {
+            action = CheckInReceiver.ACTION_CHECK_IN
+            putExtra(CheckInReceiver.EXTRA_STATUS, status)
+        }
+        val pi = PendingIntent.getBroadcast(
+            context,
+            status.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or mutableFlag()
+        )
+        return NotificationCompat.Action.Builder(0, label, pi).build()
+    }
+
+    private fun mutableFlag(): Int = if (android.os.Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
