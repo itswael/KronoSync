@@ -1,6 +1,7 @@
 package com.kronosync.di
 
 import android.content.Context
+import android.app.AlarmManager
 import androidx.room.Room
 import com.kronosync.data.db.KronoDatabase
 import dagger.Module
@@ -21,4 +22,9 @@ object DatabaseModule {
 
     @Provides
     fun provideScheduleBlockDao(db: KronoDatabase) = db.scheduleBlockDao()
+
+    @Provides
+    @Singleton
+    fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager =
+        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 }
