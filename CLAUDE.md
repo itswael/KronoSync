@@ -128,6 +128,10 @@ Work through these roughly in order — each builds on the last. Don't start bac
                   - Bundled local quote bank with encouraging, gentle, and neutral sets
                   - Adaptive selection hooked into Analytics screens based on recent Done/Partial/Skipped
 
+               - 2026-09-09: Settings screen (Step 11)
+                  - Implemented Settings screen with backup toggles, appearance controls, check-in interval, and quote frequency sliders
+                  - Wired AppSettings and BackupSettings repos; Hilt-provided DAOs
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

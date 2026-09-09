@@ -27,6 +27,12 @@ object DatabaseModule {
     fun provideDailyLogEntryDao(db: KronoDatabase) = db.dailyLogEntryDao()
 
     @Provides
+    fun provideBackupSettingsDao(db: KronoDatabase) = db.backupSettingsDao()
+
+    @Provides
+    fun provideAppSettingsDao(db: KronoDatabase) = db.appSettingsDao()
+
+    @Provides
     @Singleton
     fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
