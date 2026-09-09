@@ -85,6 +85,12 @@ Work through these roughly in order — each builds on the last. Don't start bac
    - Implemented dynamic color support and light/dark themes per spec §7
    - Added minimal icons and resources; app launches to empty Schedule tab placeholder
 
+   - 2026-09-09: Implemented Room schema and DAOs (Step 2)
+      - Added entities: Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
+      - Implemented DAOs with Flow observations and upserts for settings
+      - Created Room database and Hilt module wiring
+      - Added unit tests for Template and ScheduleBlock DAOs (in-memory DB)
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine
