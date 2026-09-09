@@ -96,6 +96,10 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Wired ViewModel (StateFlow) and Repository to Room DAO
       - Hooked into NavHost as the Schedule tab; uses Material 3 components
 
+   - 2026-09-09: Build fix
+      - Added Kotlin Compose Compiler Gradle plugin for Kotlin 2.0 (org.jetbrains.kotlin.plugin.compose)
+      - Removed deprecated composeOptions kotlinCompilerExtensionVersion
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine
