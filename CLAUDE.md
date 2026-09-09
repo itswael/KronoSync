@@ -120,6 +120,10 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Implemented `CopyDayUseCase` ensuring independent row creation
       - Extended DAO with day query to support copy-day
 
+      - 2026-09-09: Analytics dashboard (Step 8)
+         - Implemented Day analytics with basic aggregator and tonal stat cards
+         - Wired Analytics tab to show Day view; Week/Month pending next
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

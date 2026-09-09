@@ -50,6 +50,9 @@ interface DailyLogEntryDao {
 
     @Query("SELECT * FROM daily_log_entries WHERE blockId = :blockId ORDER BY timestamp DESC")
     fun observeForBlock(blockId: Long): Flow<List<DailyLogEntry>>
+
+    @Query("SELECT * FROM daily_log_entries WHERE timestamp BETWEEN :start AND :end")
+    suspend fun getBetween(start: Long, end: Long): List<DailyLogEntry>
 }
 
 @Dao
