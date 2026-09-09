@@ -79,4 +79,12 @@ class SettingsViewModel @Inject constructor(
     fun setQuoteFrequency(freq: Int) {
         viewModelScope.launch { settingsRepo.upsert(_state.value.app.copy(quoteFrequency = freq)) }
     }
+
+    fun backupNowSchedule() {
+        viewModelScope.launch { backupRepo.backupSchedule() }
+    }
+
+    fun backupNowProgress() {
+        viewModelScope.launch { backupRepo.backupProgress() }
+    }
 }

@@ -2,6 +2,7 @@ package com.kronosync.ui.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
@@ -18,7 +19,9 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Backup")
         Switch(checked = ui.scheduleBackupEnabled, onCheckedChange = { vm.setScheduleBackup(it) })
+        Button(onClick = { vm.backupNowSchedule() }) { Text("Backup schedule now") }
         Switch(checked = ui.progressBackupEnabled, onCheckedChange = { vm.setProgressBackup(it) })
+        Button(onClick = { vm.backupNowProgress() }) { Text("Backup progress now") }
         Text("Appearance")
         Switch(checked = ui.app.dynamicColorEnabled, onCheckedChange = { vm.setDynamicColor(it) })
         Switch(checked = ui.app.amoledTrueBlack, onCheckedChange = { vm.setAmoled(it) })

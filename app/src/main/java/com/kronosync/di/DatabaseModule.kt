@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.kronosync.data.backup.DriveBackupService
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,6 +32,10 @@ object DatabaseModule {
 
     @Provides
     fun provideAppSettingsDao(db: KronoDatabase) = db.appSettingsDao()
+
+    @Provides
+    @Singleton
+    fun provideDriveBackupService(@ApplicationContext context: Context): DriveBackupService = DriveBackupService(context)
 
     @Provides
     @Singleton

@@ -132,6 +132,12 @@ Work through these roughly in order — each builds on the last. Don't start bac
                   - Implemented Settings screen with backup toggles, appearance controls, check-in interval, and quote frequency sliders
                   - Wired AppSettings and BackupSettings repos; Hilt-provided DAOs
 
+   - 2026-09-09: Backup scaffolding (Step 10)
+      - Added serializable backup DTOs for schedule/progress
+      - Implemented DriveBackupService (placeholder writes JSON to internal storage)
+      - Wired BackupRepository to serialize data and trigger exports
+      - Added "Backup now" actions in Settings
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine
