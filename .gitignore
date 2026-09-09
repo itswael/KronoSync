@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+local.properties
+captures/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kotlin/Java
+*.class
+
+# Keystore (do not commit real keys)
+*.jks
+*.keystore
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# Misc
+*.apk
+*.ap_ 
+*.aab
+
+# VS Code
+.vscode/

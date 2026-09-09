@@ -74,3 +74,17 @@ Work through these roughly in order — each builds on the last. Don't start bac
 - No punitive/red framing anywhere in the touched UI or copy.
 - Builds and runs on a Pixel emulator image at the project's target API level.
 - New logic (DAOs, use cases, alarm scheduling, copy-day) has tests, not just a manual check.
+
+## Implementation Log
+
+- 2026-09-09: Initialized Android project scaffold per Implementation Step 1
+   - Set up Gradle (AGP 8.5.2, Kotlin 2.0, Gradle 8.8 wrapper)
+   - Created app module with Jetpack Compose + Material 3 theme
+   - Added Hilt setup with `KronoSyncApp` and `@AndroidEntryPoint` `MainActivity`
+   - Implemented `KronoNavHost` with three top-level destinations (Schedule, Analytics, Settings) behind a `NavigationBar`
+   - Implemented dynamic color support and light/dark themes per spec §7
+   - Added minimal icons and resources; app launches to empty Schedule tab placeholder
+
+Next:
+- Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
+- Add unit tests for DAOs using in-memory Room database and Turbine
