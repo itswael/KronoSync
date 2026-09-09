@@ -23,4 +23,10 @@ class AnalyticsAggregator @Inject constructor(
         }
         return Summary(done, partial, skipped)
     }
+
+    suspend fun daySummary(dayEpoch: Long): Summary = summaryBetween(dayEpoch, dayEpoch + 86_400_000 - 1)
+
+    suspend fun weekSummary(weekStartEpoch: Long): Summary = summaryBetween(weekStartEpoch, weekStartEpoch + 7L * 86_400_000 - 1)
+
+    suspend fun monthSummary(monthStartEpoch: Long, daysInMonth: Int): Summary = summaryBetween(monthStartEpoch, monthStartEpoch + daysInMonth * 86_400_000L - 1)
 }

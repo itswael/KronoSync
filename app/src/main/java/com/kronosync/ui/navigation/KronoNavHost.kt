@@ -23,6 +23,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.kronosync.ui.schedule.grid.ScheduleGridScreen
 import com.kronosync.ui.analytics.DayAnalyticsScreen
+import com.kronosync.ui.analytics.WeekAnalyticsScreen
+import com.kronosync.ui.analytics.MonthAnalyticsScreen
 
 private enum class TopDest(val route: String, val label: String, val icon: ImageVector) {
     Schedule("schedule", "Schedule", Icons.Outlined.Schedule),

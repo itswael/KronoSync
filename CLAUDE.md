@@ -121,8 +121,8 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Extended DAO with day query to support copy-day
 
       - 2026-09-09: Analytics dashboard (Step 8)
-         - Implemented Day analytics with basic aggregator and tonal stat cards
-         - Wired Analytics tab to show Day view; Week/Month pending next
+               - Implemented Day, Week, Month analytics with aggregator and tonal stat cards
+               - Wired Analytics tab to show Day view; Week/Month screens added and ready to integrate under tab UI
 
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings

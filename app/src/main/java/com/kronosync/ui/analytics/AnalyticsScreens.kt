@@ -23,6 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 class AnalyticsViewModel @Inject constructor(
     private val agg: AnalyticsAggregator
@@ -34,8 +36,27 @@ class AnalyticsViewModel @Inject constructor(
     fun loadDay(day: LocalDate) {
         viewModelScope.launch {
             val start = day.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
-            val end = start + 86_400_000 - 1
-            val s = agg.summaryBetween(start, end)
+            val s = agg.daySummary(start)
+            state.value = UiState(s.done, s.partial, s.skipped)
+        }
+    }
+
+    fun loadWeek(dayInWeek: LocalDate) {
+        viewModelScope.launch {
+            val wf = WeekFields.of(Locale.getDefault())
+            val weekStart = dayInWeek.with(wf.dayOfWeek(), 1)
+            val start = weekStart.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+            val s = agg.weekSummary(start)
+            state.value = UiState(s.done, s.partial, s.skipped)
+        }
+    }
+
+    fun loadMonth(month: LocalDate) {
+        viewModelScope.launch {
+            val monthStart = month.withDayOfMonth(1)
+            val start = monthStart.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+            val days = month.lengthOfMonth()
+            val s = agg.monthSummary(start, days)
             state.value = UiState(s.done, s.partial, s.skipped)
         }
     }
@@ -49,5 +70,27 @@ fun DayAnalyticsScreen(vm: AnalyticsViewModel = hiltViewModel()) {
         Card { Text("Done: ${ui.done}", Modifier.padding(16.dp)) }
         Card { Text("Partial: ${ui.partial}", Modifier.padding(16.dp)) }
         Card { Text("Skipped: ${ui.skipped}", Modifier.padding(16.dp)) }
+    }
+}
+
+@Composable
+fun WeekAnalyticsScreen(vm: AnalyticsViewModel = hiltViewModel()) {
+    LaunchedEffect(Unit) { vm.loadWeek(LocalDate.now()) }
+    val ui = vm.state.value
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Card { Text("Week Done: ${ui.done}", Modifier.padding(16.dp)) }
+        Card { Text("Week Partial: ${ui.partial}", Modifier.padding(16.dp)) }
+        Card { Text("Week Skipped: ${ui.skipped}", Modifier.padding(16.dp)) }
+    }
+}
+
+@Composable
+fun MonthAnalyticsScreen(vm: AnalyticsViewModel = hiltViewModel()) {
+    LaunchedEffect(Unit) { vm.loadMonth(LocalDate.now()) }
+    val ui = vm.state.value
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Card { Text("Month Done: ${ui.done}", Modifier.padding(16.dp)) }
+        Card { Text("Month Partial: ${ui.partial}", Modifier.padding(16.dp)) }
+        Card { Text("Month Skipped: ${ui.skipped}", Modifier.padding(16.dp)) }
     }
 }
