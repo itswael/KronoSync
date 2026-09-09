@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.kronosync.ui.schedule.ScheduleListScreen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
@@ -58,7 +59,7 @@ fun KronoNavHost() {
             navController = navController,
             startDestination = TopDest.Schedule.route
         ) {
-            composable(TopDest.Schedule.route) { Text("Schedule") }
+            composable(TopDest.Schedule.route) { ScheduleListScreen() }
             composable(TopDest.Analytics.route) { Text("Analytics") }
             composable(TopDest.Settings.route) { Text("Settings") }
         }
