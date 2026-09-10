@@ -16,6 +16,9 @@ interface TemplateDao {
 
     @Query("SELECT * FROM templates ORDER BY name")
     fun observeAll(): Flow<List<Template>>
+
+    @Query("SELECT * FROM templates ORDER BY name")
+    suspend fun getAll(): List<Template>
 }
 
 @Dao
@@ -35,11 +38,10 @@ interface ScheduleBlockDao {
     @Query("SELECT * FROM schedule_blocks WHERE dayEpoch = :dayEpoch ORDER BY startMinute")
     suspend fun getForDay(dayEpoch: Long): List<ScheduleBlock>
 
-    @Query(
-        "SELECT * FROM schedule_blocks " ||
-        "WHERE (dayEpoch + (startMinute * 60000)) > :nowMillis " ||
-        "ORDER BY (dayEpoch + (startMinute * 60000)) ASC LIMIT 1"
-    )
+    @Query("SELECT * FROM schedule_blocks ORDER BY dayEpoch, startMinute")
+    suspend fun getAll(): List<ScheduleBlock>
+
+    @Query("SELECT * FROM schedule_blocks WHERE (dayEpoch + (startMinute * 60000)) > :nowMillis ORDER BY (dayEpoch + (startMinute * 60000)) ASC LIMIT 1")
     suspend fun getNextUpcoming(nowMillis: Long): ScheduleBlock?
 }
 
@@ -53,6 +55,9 @@ interface DailyLogEntryDao {
 
     @Query("SELECT * FROM daily_log_entries WHERE timestamp BETWEEN :start AND :end")
     suspend fun getBetween(start: Long, end: Long): List<DailyLogEntry>
+
+    @Query("SELECT * FROM daily_log_entries ORDER BY timestamp DESC")
+    suspend fun getAll(): List<DailyLogEntry>
 }
 
 @Dao

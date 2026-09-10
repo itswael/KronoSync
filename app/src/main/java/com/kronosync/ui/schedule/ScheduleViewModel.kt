@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
 import com.kronosync.domain.CopyDayUseCase
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @HiltViewModel

@@ -5,8 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,10 +26,12 @@ import javax.inject.Inject
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.temporal.WeekFields
 import java.util.Locale
 
+@HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val agg: AnalyticsAggregator,
     private val quotes: QuoteBank
@@ -110,10 +113,22 @@ fun MonthAnalyticsScreen(vm: AnalyticsViewModel = hiltViewModel()) {
 fun AnalyticsTabScreen() {
     val (tab, setTab) = remember { mutableStateOf(0) } // 0: Day, 1: Week, 2: Month
     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SegmentedButtonRow {
-            SegmentedButton(selected = tab == 0, onClick = { setTab(0) }, shape = null) { Text("Day") }
-            SegmentedButton(selected = tab == 1, onClick = { setTab(1) }, shape = null) { Text("Week") }
-            SegmentedButton(selected = tab == 2, onClick = { setTab(2) }, shape = null) { Text("Month") }
+        SingleChoiceSegmentedButtonRow {
+            SegmentedButton(
+                selected = tab == 0,
+                onClick = { setTab(0) },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+            ) { Text("Day") }
+            SegmentedButton(
+                selected = tab == 1,
+                onClick = { setTab(1) },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+            ) { Text("Week") }
+            SegmentedButton(
+                selected = tab == 2,
+                onClick = { setTab(2) },
+                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+            ) { Text("Month") }
         }
         Spacer(Modifier.height(12.dp))
         when (tab) {

@@ -15,4 +15,6 @@ class ScheduleRepository @Inject constructor(
     suspend fun add(block: ScheduleBlock): Long = dao.insert(block)
     suspend fun update(block: ScheduleBlock) = dao.update(block)
     suspend fun delete(block: ScheduleBlock) = dao.delete(block)
+
+    suspend fun getAllBlocks(): List<ScheduleBlock> = dao.getAll()
 }

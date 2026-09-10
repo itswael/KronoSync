@@ -22,4 +22,6 @@ class CheckInRepository @Inject constructor(
     }
 
     fun observe(blockId: Long): Flow<List<DailyLogEntry>> = dao.observeForBlock(blockId)
+
+    suspend fun getAllEntries(): List<DailyLogEntry> = dao.getAll()
 }

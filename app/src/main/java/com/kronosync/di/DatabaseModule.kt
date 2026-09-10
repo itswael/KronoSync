@@ -28,6 +28,9 @@ object DatabaseModule {
     fun provideDailyLogEntryDao(db: KronoDatabase) = db.dailyLogEntryDao()
 
     @Provides
+    fun provideTemplateDao(db: KronoDatabase) = db.templateDao()
+
+    @Provides
     fun provideBackupSettingsDao(db: KronoDatabase) = db.backupSettingsDao()
 
     @Provides

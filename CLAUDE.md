@@ -138,6 +138,10 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Wired BackupRepository to serialize data and trigger exports
       - Added "Backup now" actions in Settings
 
+   - 2026-09-09: Room schema export
+      - Applied AndroidX Room Gradle plugin and wired schemaDirectory to app/schemas
+      - Generated initial schema JSON (version 1) under app/schemas/com.kronosync.data.db.KronoDatabase/1.json
+
 Next:
 - Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
 - Add unit tests for DAOs using in-memory Room database and Turbine

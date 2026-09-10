@@ -20,7 +20,7 @@ data class TemplateDTO(val id: Long, val name: String)
 data class ScheduleBlockDTO(
     val id: Long,
     val dayEpoch: Long,
-    val startMinutes: Int,
+    val startMinute: Int,
     val title: String,
     val tag: String?
 )
@@ -29,6 +29,6 @@ data class ScheduleBlockDTO(
 data class DailyLogEntryDTO(
     val id: Long,
     val blockId: Long?,
-    val dayEpoch: Long,
+    val timestamp: Long,
     val status: String
 )
