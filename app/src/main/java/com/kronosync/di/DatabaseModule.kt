@@ -19,7 +19,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): KronoDatabase =
-        Room.databaseBuilder(context, KronoDatabase::class.java, "krono.db").build()
+        Room.databaseBuilder(context, KronoDatabase::class.java, "krono.db")
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     fun provideScheduleBlockDao(db: KronoDatabase) = db.scheduleBlockDao()
