@@ -27,11 +27,11 @@ fun CheckInSheet(
         Column(modifier = Modifier.padding(16.dp)) {
             Text("How did it go?")
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { onAction("Done") }) { Text("Done") }
+            Button(onClick = { onAction("Done") }) { Text("Mark done") }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = { onAction("Partial") }) { Text("Partial") }
+            Button(onClick = { onAction("Partial") }) { Text("Mark partial") }
             Spacer(Modifier.height(8.dp))
-            Button(onClick = { onAction("Skipped") }) { Text("Skipped") }
+            Button(onClick = { onAction("Skipped") }) { Text("Skip for now") }
             Spacer(Modifier.height(16.dp))
         }
     }
