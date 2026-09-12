@@ -31,9 +31,9 @@ class Notifier @Inject constructor(
             .setContentTitle("It's time")
             .setContentText(title)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .addAction(buildAction("Done", "Done"))
-            .addAction(buildAction("Partial", "Partial"))
-            .addAction(buildAction("Skipped", "Skipped"))
+            .addAction(buildAction("Mark done", "Done"))
+            .addAction(buildAction("Mark partial", "Partial"))
+            .addAction(buildAction("Skip for now", "Skipped"))
         NotificationManagerCompat.from(context).notify(title.hashCode(), builder.build())
     }
 
@@ -55,7 +55,9 @@ class Notifier @Inject constructor(
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Start Alerts", NotificationManager.IMPORTANCE_HIGH)
+            val channel = NotificationChannel(channelId, "Start reminders", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Gentle reminders when a scheduled block begins."
+            }
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
         }

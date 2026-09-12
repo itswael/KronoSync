@@ -8,6 +8,7 @@ import com.kronosync.data.db.BackupSettingsDao
 import com.kronosync.data.repository.CheckInRepository
 import com.kronosync.data.repository.ScheduleRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +23,9 @@ class BackupRepository @Inject constructor(
     suspend fun upsert(s: BackupSettings) = backupSettingsDao.upsert(s)
 
     suspend fun backupSchedule(): Boolean {
+        // Respect toggle: quietly no-op when disabled.
+        val s = observe().first()
+        if (s?.scheduleBackupEnabled != true) return true
         val templates = emptyList<com.kronosync.data.backup.TemplateDTO>()
         val blocks = scheduleRepo.getAllBlocks().map {
             com.kronosync.data.backup.ScheduleBlockDTO(
@@ -36,6 +40,8 @@ class BackupRepository @Inject constructor(
     }
 
     suspend fun backupProgress(): Boolean {
+        val s = observe().first()
+        if (s?.progressBackupEnabled != true) return true
         val entries = checkInRepo.getAllEntries().map {
             com.kronosync.data.backup.DailyLogEntryDTO(
                 id = it.id,
