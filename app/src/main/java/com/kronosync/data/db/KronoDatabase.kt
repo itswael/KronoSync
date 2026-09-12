@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
         BackupSettings::class,
         AppSettings::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class KronoDatabase : RoomDatabase() {

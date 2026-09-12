@@ -56,6 +56,9 @@ interface DailyLogEntryDao {
     @Query("SELECT * FROM daily_log_entries WHERE timestamp BETWEEN :start AND :end")
     suspend fun getBetween(start: Long, end: Long): List<DailyLogEntry>
 
+    @Query("SELECT MIN(timestamp) FROM daily_log_entries")
+    suspend fun getFirstLogTimestamp(): Long?
+
     @Query("SELECT * FROM daily_log_entries ORDER BY timestamp DESC")
     suspend fun getAll(): List<DailyLogEntry>
 }
@@ -76,4 +79,7 @@ interface AppSettingsDao {
 
     @Query("SELECT * FROM app_settings WHERE id = 0")
     fun observe(): Flow<AppSettings?>
+
+    @Query("SELECT * FROM app_settings WHERE id = 0")
+    suspend fun get(): AppSettings?
 }
