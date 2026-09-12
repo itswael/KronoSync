@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kronosync.data.db.AppSettings
 import com.kronosync.data.repository.settings.SettingsRepository
 import com.kronosync.data.repository.settings.BackupRepository
+import com.kronosync.domain.backup.BackupOptInManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepo: SettingsRepository,
-    private val backupRepo: BackupRepository
+    private val backupRepo: BackupRepository,
+    private val backupOptIn: BackupOptInManager
 ) : ViewModel() {
     data class UiState(
         val app: AppSettings = AppSettings(),
@@ -86,5 +88,15 @@ class SettingsViewModel @Inject constructor(
 
     fun backupNowProgress() {
         viewModelScope.launch { backupRepo.backupProgress() }
+    }
+
+    suspend fun shouldPromptBackup(): Boolean = backupOptIn.shouldPrompt()
+
+    fun markBackupPromptShown() {
+        viewModelScope.launch { backupOptIn.markPromptShown() }
+    }
+
+    fun dismissBackupPrompt() {
+        viewModelScope.launch { backupOptIn.dismissPrompt() }
     }
 }
