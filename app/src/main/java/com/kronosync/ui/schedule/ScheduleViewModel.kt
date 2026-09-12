@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kronosync.data.db.ScheduleBlock
 import com.kronosync.data.repository.ScheduleRepository
 import com.kronosync.data.alarm.AlarmScheduler
+import com.kronosync.data.alarm.Rescheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,8 @@ import java.time.format.DateTimeFormatter
 class ScheduleViewModel @Inject constructor(
     private val repo: ScheduleRepository,
     private val alarmScheduler: AlarmScheduler,
-    private val copyDay: CopyDayUseCase
+    private val copyDay: CopyDayUseCase,
+    private val rescheduler: Rescheduler
 ) : ViewModel() {
 
     data class UiState(
@@ -37,6 +39,8 @@ class ScheduleViewModel @Inject constructor(
 
     init {
         observeDay()
+        // Re-sync alarms on app open to maintain just-in-time chaining
+        viewModelScope.launch { rescheduler.onBootCompleted() }
     }
 
     private fun observeDay() {
@@ -51,6 +55,20 @@ class ScheduleViewModel @Inject constructor(
         viewModelScope.launch {
             val block = ScheduleBlock(
                 dayEpoch = _state.value.dayEpoch,
+                startMinute = timeMinutes,
+                durationMinutes = 60,
+                title = title
+            )
+            val id = repo.add(block)
+            val saved = block.copy(id = id)
+            alarmScheduler.scheduleExact(saved)
+        }
+    }
+
+    fun addBlockFor(dayEpoch: Long, timeMinutes: Int, title: String) {
+        viewModelScope.launch {
+            val block = ScheduleBlock(
+                dayEpoch = dayEpoch,
                 startMinute = timeMinutes,
                 durationMinutes = 60,
                 title = title
