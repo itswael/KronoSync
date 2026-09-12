@@ -49,5 +49,7 @@ data class AppSettings(
     val dynamicColorEnabled: Boolean = true,
     val amoledTrueBlack: Boolean = false,
     val checkInBatchMinutes: Int = 30,
-    val quoteFrequency: Int = 1 // 0: off, 1: low, 2: medium, 3: high
+    val quoteFrequency: Int = 1, // 0: off, 1: low, 2: medium, 3: high
+    val backupOptInDismissed: Boolean = false,
+    val backupOptInPromptedAt: Long? = null
 )
