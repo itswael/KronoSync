@@ -103,7 +103,7 @@ Work through these roughly in order — each builds on the last. Don't start bac
    - 2026-09-09: Alarm-chaining scaffolding (Step 4)
       - Implemented AlarmScheduler using AlarmManager.setExactAndAllowWhileIdle
       - Added StartAlertReceiver to show notifications and chain next
-      - Added BootRescheduleReceiver with rescheduler to re-sync after boot
+      - Added BootRescheduleReceiver with rescheduler to re-sync after boot (goAsync + coroutine)
       - Declared RECEIVE_BOOT_COMPLETED and SCHEDULE_EXACT_ALARM in manifest
       - Wired ScheduleViewModel to schedule on add; Notifier creates high-priority alerts
 
@@ -137,11 +137,16 @@ Work through these roughly in order — each builds on the last. Don't start bac
       - Implemented DriveBackupService (placeholder writes JSON to internal storage)
       - Wired BackupRepository to serialize data and trigger exports
       - Added "Backup now" actions in Settings
+      - Added BackupOptInManager (3-day heuristic by first log timestamp) and gentle opt-in dialog scaffold
+      - Persisted opt-in prompt state in AppSettings (shown/dismissed) and prevent re-prompts
+      - Bumped Room schema to v2 (temporary fallbackToDestructiveMigration during dev)
 
    - 2026-09-09: Room schema export
       - Applied AndroidX Room Gradle plugin and wired schemaDirectory to app/schemas
       - Generated initial schema JSON (version 1) under app/schemas/com.kronosync.data.db.KronoDatabase/1.json
 
 Next:
-- Complete Step 2: Room schema for Template, ScheduleBlock, DailyLogEntry, BackupSettings, AppSettings
-- Add unit tests for DAOs using in-memory Room database and Turbine
+- Integrate Google Drive API writes (App Data)
+- Gate backups on toggles (done for placeholder writer)
+- Navigate from opt-in dialog to Settings (done)
+- Add DAO tests for new fields and backup flow
