@@ -4,6 +4,9 @@ build/
 **/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
+# Stray local Gradle distributions (never commit these — the wrapper downloads its own copy)
+/gradle-*/
+/gradle-*.zip
 
 # Android Studio
 .idea/
