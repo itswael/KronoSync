@@ -1,191 +1,198 @@
 package com.kronosync.ui.schedule.dial
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.outlined.SelfImprovement
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kronosync.data.db.ScheduleBlock
+import com.kronosync.domain.quotes.QuoteBank
 import com.kronosync.ui.schedule.ScheduleViewModel
+import com.kronosync.ui.schedule.formatMinutes
 import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun ScheduleDialScreen(vm: ScheduleViewModel = hiltViewModel()) {
-    val ui = vm.state.collectAsState()
+    val ui by vm.state.collectAsState()
+    var nowMinute by remember { mutableIntStateOf(minutesSinceLocalMidnight(ui.dayEpoch)) }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val viewportHeight: Dp = maxHeight
-        val centerPad = viewportHeight / 2
-        val dpPerMinute = 1.dp
-        val pxPerMinute = with(LocalDensity.current) { dpPerMinute.toPx() }
-        val state = rememberLazyListState()
-
-        val segments = remember(ui.value.blocks) { buildSegments(ui.value.blocks) }
-        var currentMinute by remember { mutableIntStateOf(minutesSinceLocalMidnight(ui.value.dayEpoch)) }
-
-        // Auto-scroll to keep current time centered
-        LaunchedEffect(ui.value.dayEpoch, segments) {
-            while (true) {
-                currentMinute = minutesSinceLocalMidnight(ui.value.dayEpoch)
-                val (index, offsetPx) = indexAndOffsetForMinute(segments, currentMinute, pxPerMinute)
-                // Center by using content padding equal to half viewport height
-                state.scrollToItem(index, offsetPx)
-                delay(1000L)
-            }
+    LaunchedEffect(ui.dayEpoch) {
+        while (true) {
+            nowMinute = minutesSinceLocalMidnight(ui.dayEpoch)
+            delay(15_000L)
         }
+    }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                state = state,
-                contentPadding = PaddingValues(top = centerPad, bottom = centerPad),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(segments) { seg ->
-                    when (seg) {
-                        is BlockSegment -> {
-                            val centerMinute = seg.blk.startMinute + seg.blk.durationMinutes / 2
-                            val dist = kotlin.math.abs(centerMinute - currentMinute)
-                            val scale = scaleForDistance(dist)
-                            BlockItem(seg.blk, dpPerMinute, isCurrent = isCurrent(seg.blk, currentMinute), scale = scale)
-                        }
-                        is GapSegment -> GapItem(seg.minutes, dpPerMinute)
-                    }
-                }
-            }
+    val sorted = remember(ui.blocks) { ui.blocks.sortedBy { it.startMinute } }
+    val current = sorted.firstOrNull { it.startMinute <= nowMinute && nowMinute < it.startMinute + it.durationMinutes }
+    val next = sorted.firstOrNull { it.startMinute > nowMinute }
+    val quote = remember { QuoteBank().pick(0, 0, 0) }
 
-            // Center indicator line
-            Spacer(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .height(2.dp)
-                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f))
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            "Today",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(28.dp))
+        FocusRing(current = current, next = next, nowMinute = nowMinute)
+        Spacer(Modifier.height(36.dp))
+        QuoteCard(quote)
+    }
+}
+
+@Composable
+private fun QuoteCard(quote: String) {
+    Card(
+        modifier = Modifier.padding(horizontal = 28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.FormatQuote, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                quote,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
 }
 
-private sealed interface Segment { val minutes: Int }
-private data class GapSegment(override val minutes: Int) : Segment
-private data class BlockSegment(val blk: ScheduleBlock) : Segment { override val minutes: Int = blk.durationMinutes }
-
-private fun buildSegments(blocks: List<ScheduleBlock>): List<Segment> {
-    if (blocks.isEmpty()) return listOf(GapSegment(24 * 60))
-    val sorted = blocks.sortedBy { it.startMinute }
-    val res = mutableListOf<Segment>()
-    var cursor = 0
-    for (b in sorted) {
-        if (b.startMinute > cursor) {
-            res.add(GapSegment(b.startMinute - cursor))
-        }
-        res.add(BlockSegment(b))
-        cursor = b.startMinute + b.durationMinutes
-    }
-    if (cursor < 24 * 60) res.add(GapSegment(24 * 60 - cursor))
-    return res
-}
-
-private fun indexAndOffsetForMinute(segments: List<Segment>, minute: Int, pxPerMinute: Float): Pair<Int, Int> {
-    var remaining = minute.coerceIn(0, 24 * 60)
-    var idx = 0
-    for (seg in segments) {
-        if (remaining < seg.minutes) {
-            val offsetPx = (remaining * pxPerMinute).toInt()
-            return idx to offsetPx
-        } else {
-            remaining -= seg.minutes
-            idx += 1
-        }
-    }
-    // End of day
-    return (segments.size - 1) to 0
-}
-
 @Composable
-private fun BlockItem(block: ScheduleBlock, dpPerMinute: Dp, isCurrent: Boolean, scale: Float) {
-    val height = dpPerMinute * block.durationMinutes
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val titleStyle = MaterialTheme.typography.titleMedium
-        val scaledTitle = titleStyle.copy(
-            fontSize = titleStyle.fontSize * scale,
-            fontWeight = if (isCurrent) FontWeight.Bold else titleStyle.fontWeight
-        )
-        Text(
-            text = block.title,
-            style = scaledTitle,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = "${formatMinutes(block.startMinute)} – ${formatMinutes(block.startMinute + block.durationMinutes)}",
-            style = MaterialTheme.typography.bodyMedium.copy(fontSize = MaterialTheme.typography.bodyMedium.fontSize * (0.9f * scale)),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+private fun FocusRing(current: ScheduleBlock?, next: ScheduleBlock?, nowMinute: Int) {
+    val diameter = 268.dp
+    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+    val progressColor = MaterialTheme.colorScheme.primary
+
+    Box(modifier = Modifier.size(diameter), contentAlignment = Alignment.Center) {
+        val fraction = if (current != null) {
+            ((nowMinute - current.startMinute).toFloat() / current.durationMinutes).coerceIn(0f, 1f)
+        } else 0f
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val stroke = Stroke(width = 16.dp.toPx(), cap = StrokeCap.Round)
+            val inset = stroke.width / 2
+            drawArc(
+                color = trackColor,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                size = Size(size.width - stroke.width, size.height - stroke.width),
+                style = stroke
+            )
+            if (current != null) {
+                drawArc(
+                    color = progressColor,
+                    startAngle = -90f,
+                    sweepAngle = 360f * fraction,
+                    useCenter = false,
+                    topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                    size = Size(size.width - stroke.width, size.height - stroke.width),
+                    style = stroke
+                )
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(36.dp)) {
+            if (current != null) {
+                val minutesLeft = (current.startMinute + current.durationMinutes - nowMinute).coerceAtLeast(0)
+                Text(
+                    current.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    maxLines = 2
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "${formatMinutes(current.startMinute)} – ${formatMinutes(current.startMinute + current.durationMinutes)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "$minutesLeft min left",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else if (next != null) {
+                val minutesUntil = next.startMinute - nowMinute
+                Icon(Icons.Outlined.SelfImprovement, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                Spacer(Modifier.height(10.dp))
+                Text("Free time", style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "${next.title} in ${formatDuration(minutesUntil)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            } else {
+                Icon(Icons.Outlined.SelfImprovement, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                Spacer(Modifier.height(10.dp))
+                Text("All clear", style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Nothing left scheduled today",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
-@Composable
-private fun GapItem(minutes: Int, dpPerMinute: Dp) {
-    val height = dpPerMinute * minutes
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-    )
+private fun formatDuration(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h == 0 -> "${m}m"
+        m == 0 -> "${h}h"
+        else -> "${h}h ${m}m"
+    }
 }
 
 private fun minutesSinceLocalMidnight(dayEpoch: Long): Int {
-    val nowMillis = System.currentTimeMillis()
-    val diff = nowMillis - dayEpoch
+    val diff = System.currentTimeMillis() - dayEpoch
     return (diff / 60_000L).toInt().coerceIn(0, 24 * 60)
-}
-
-private fun isCurrent(block: ScheduleBlock, nowMinute: Int): Boolean {
-    return nowMinute in block.startMinute until (block.startMinute + block.durationMinutes)
-}
-
-private fun formatMinutes(m: Int): String {
-    val mm = ((m % (24 * 60)) + (24 * 60)) % (24 * 60)
-    val h = mm / 60
-    val min = mm % 60
-    return String.format("%02d:%02d", h, min)
-}
-
-private fun scaleForDistance(distanceMinutes: Int): Float {
-    val maxScale = 1.25f
-    val minScale = 0.85f
-    val cap = 120f
-    val d = distanceMinutes.toFloat().coerceAtMost(cap)
-    val t = d / cap
-    return maxScale - t * (maxScale - minScale)
 }

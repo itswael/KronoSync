@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Using Material 3 dynamic color; fallback minimal palette -->
-    <color name="seed">#6750A4</color>
+    <!-- Real UI theming lives in ui/theme (Compose). These only cover the brief
+         pre-Compose window background so it doesn't flash the Material default purple. -->
+    <color name="seed">#006C58</color>
+    <color name="window_background_light">#FBFDFA</color>
+    <color name="window_background_dark">#101312</color>
 </resources>

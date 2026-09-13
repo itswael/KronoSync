@@ -2,6 +2,6 @@
 <resources>
     <style name="Theme.KronoSync" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/seed</item>
-        <item name="android:windowBackground">@color/window_background_light</item>
+        <item name="android:windowBackground">@color/window_background_dark</item>
     </style>
 </resources>

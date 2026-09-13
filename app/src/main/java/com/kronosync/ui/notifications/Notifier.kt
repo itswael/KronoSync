@@ -25,26 +25,27 @@ class Notifier @Inject constructor(
         ensureChannel()
     }
 
-    fun showStartNotification(title: String) {
+    fun showStartNotification(blockId: Long, title: String) {
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("It's time")
             .setContentText(title)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .addAction(buildAction("Mark done", "Done"))
-            .addAction(buildAction("Mark partial", "Partial"))
-            .addAction(buildAction("Skip for now", "Skipped"))
-        NotificationManagerCompat.from(context).notify(title.hashCode(), builder.build())
+            .addAction(buildAction(blockId, "Mark done", "Done"))
+            .addAction(buildAction(blockId, "Mark partial", "Partial"))
+            .addAction(buildAction(blockId, "Skip for now", "Skipped"))
+        NotificationManagerCompat.from(context).notify(blockId.hashCode(), builder.build())
     }
 
-    private fun buildAction(label: String, status: String): NotificationCompat.Action {
+    private fun buildAction(blockId: Long, label: String, status: String): NotificationCompat.Action {
         val intent = Intent(context, CheckInReceiver::class.java).apply {
             action = CheckInReceiver.ACTION_CHECK_IN
             putExtra(CheckInReceiver.EXTRA_STATUS, status)
+            putExtra(AlarmScheduler.EXTRA_BLOCK_ID, blockId)
         }
         val pi = PendingIntent.getBroadcast(
             context,
-            status.hashCode(),
+            (blockId.toString() + status).hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or mutableFlag()
         )

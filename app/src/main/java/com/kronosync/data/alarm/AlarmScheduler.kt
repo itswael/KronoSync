@@ -17,7 +17,9 @@ class AlarmScheduler @Inject constructor(
     private val alarmManager: AlarmManager
 ) {
 
-    fun scheduleExact(block: ScheduleBlock) {
+    /** Returns false (and schedules nothing) if exact-alarm permission isn't granted yet. */
+    fun scheduleExact(block: ScheduleBlock): Boolean {
+        if (!ExactAlarmPermission.canScheduleExactAlarms(context)) return false
         val triggerAt = blockTriggerMillis(block)
         val pi = intentFor(block)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -25,6 +27,7 @@ class AlarmScheduler @Inject constructor(
         } else {
             alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pi)
         }
+        return true
     }
 
     fun cancel(block: ScheduleBlock) {

@@ -19,7 +19,8 @@ class StartAlertReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val title = intent.getStringExtra(AlarmScheduler.EXTRA_TITLE) ?: return
-        notifier.showStartNotification(title)
+        val blockId = intent.getLongExtra(AlarmScheduler.EXTRA_BLOCK_ID, -1L)
+        notifier.showStartNotification(blockId, title)
 
         // Chain next upcoming alarm
         CoroutineScope(Dispatchers.Default).launch {

@@ -38,6 +38,12 @@ interface ScheduleBlockDao {
     @Query("SELECT * FROM schedule_blocks WHERE dayEpoch = :dayEpoch ORDER BY startMinute")
     suspend fun getForDay(dayEpoch: Long): List<ScheduleBlock>
 
+    @Query("SELECT * FROM schedule_blocks WHERE dayEpoch >= :startInclusive AND dayEpoch < :endExclusive ORDER BY dayEpoch, startMinute")
+    fun observeBetweenDays(startInclusive: Long, endExclusive: Long): Flow<List<ScheduleBlock>>
+
+    @Query("SELECT * FROM schedule_blocks WHERE dayEpoch >= :startInclusive AND dayEpoch < :endExclusive ORDER BY dayEpoch, startMinute")
+    suspend fun getBetweenDays(startInclusive: Long, endExclusive: Long): List<ScheduleBlock>
+
     @Query("SELECT * FROM schedule_blocks ORDER BY dayEpoch, startMinute")
     suspend fun getAll(): List<ScheduleBlock>
 

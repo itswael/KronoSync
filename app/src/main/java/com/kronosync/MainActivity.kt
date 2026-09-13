@@ -1,8 +1,14 @@
 package com.kronosync
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -12,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kronosync.ui.settings.SettingsViewModel
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,17 +31,31 @@ import com.kronosync.ui.navigation.KronoNavHost
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
-            KronoSyncTheme {
-                val vm: SettingsViewModel = hiltViewModel()
-                var showOptIn by remember { mutableStateOf(false) }
-                
+            val vm: SettingsViewModel = hiltViewModel()
+            val settings = vm.state.collectAsState().value
 
-                // Lightweight: check once on launch; real usage tracked via logs.
+            KronoSyncTheme(
+                dynamicColor = settings.app.dynamicColorEnabled,
+                amoledTrueBlack = settings.app.amoledTrueBlack
+            ) {
+                var showOptIn by remember { mutableStateOf(false) }
+
+                val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { /* no-op: user's choice either way, nothing to react to here */ }
+
                 LaunchedEffect(Unit) {
                     if (vm.shouldPromptBackup()) {
                         showOptIn = true
                         vm.markBackupPromptShown()
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 }
 

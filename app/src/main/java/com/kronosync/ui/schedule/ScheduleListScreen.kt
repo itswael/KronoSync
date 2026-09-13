@@ -1,30 +1,38 @@
 package com.kronosync.ui.schedule
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
-import com.kronosync.domain.CopyDayUseCase
+import com.kronosync.data.db.ScheduleBlock
+import com.kronosync.ui.checkin.CheckInSheet
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.kronosync.ui.schedule.parseTargetDaysCsv
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,137 +42,173 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.launch
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.LaunchedEffect
-import android.app.TimePickerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
-    val ui = vm.state.collectAsState()
+    val ui by vm.state.collectAsState()
+    var checkInBlock by remember { mutableStateOf<ScheduleBlock?>(null) }
+    var editBlock by remember { mutableStateOf<ScheduleBlock?>(null) }
+    val checkInSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val editSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
-    var showSheet by remember { mutableStateOf(false) }
-    var showCopy by remember { mutableStateOf(false) }
-    val sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val listState = rememberLazyListState()
+    val nowMinute = minutesSinceLocalMidnight(ui.dayEpoch)
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(ui.value.blocks) { block ->
-                ListItem(
-                    headlineContent = { Text(block.title) },
-                    supportingContent = { Text("Starts at "+ formatMinutes(block.startMinute)) }
+    if (ui.blocks.isEmpty()) {
+        EmptySchedule()
+    } else {
+        val currentIndex = remember(ui.blocks) {
+            ui.blocks.indexOfFirst { it.startMinute <= nowMinute && nowMinute < it.startMinute + it.durationMinutes }
+        }
+        LaunchedEffect(ui.blocks) {
+            val target = if (currentIndex >= 0) currentIndex else ui.blocks.indexOfFirst { it.startMinute >= nowMinute }
+            if (target >= 0) listState.animateScrollToItem((target - 1).coerceAtLeast(0))
+        }
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(ui.blocks, key = { _, b -> b.id }) { index, block ->
+                val isCurrent = index == currentIndex
+                val started = block.startMinute <= nowMinute
+                val isPast = block.startMinute + block.durationMinutes <= nowMinute
+                ScheduleBlockCard(
+                    block = block,
+                    isCurrent = isCurrent,
+                    eligibleForCheckIn = started,
+                    editable = !isPast,
+                    onCheckIn = { checkInBlock = block },
+                    onEdit = { editBlock = block }
                 )
             }
         }
-        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = { showSheet = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Quick add")
-            }
-            IconButton(onClick = { showCopy = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Copy day")
-            }
-        }
     }
 
-    if (showSheet) {
-        QuickAddSheet(
-            onDismiss = { showSheet = false },
-            onAdd = { dayEpoch, minutes, title ->
-                vm.addBlockFor(dayEpoch ?: ui.value.dayEpoch, minutes, title)
-                scope.launch { sheetState.hide() }.invokeOnCompletion { showSheet = false }
+    checkInBlock?.let { block ->
+        CheckInSheet(
+            onDismiss = { checkInBlock = null },
+            onAction = { status ->
+                vm.checkIn(block.id, status)
+                scope.launch { checkInSheetState.hide() }.invokeOnCompletion { checkInBlock = null }
             },
-            sheetState = sheetState,
-            defaultDayEpoch = ui.value.dayEpoch
+            sheetState = checkInSheetState
         )
     }
 
-    if (showCopy) {
-        CopyDaySheet(
-            onDismiss = { showCopy = false },
-            onCopy = { csv ->
-                val targets = parseTargetDaysCsv(csv)
-                scope.launch { vm.copyTo(targets) }
-                showCopy = false
-            }
+    editBlock?.let { block ->
+        EditBlockSheet(
+            block = block,
+            onDismiss = { editBlock = null },
+            onSave = { startMinute, durationMinutes, title ->
+                vm.updateBlock(block, startMinute, durationMinutes, title)
+                scope.launch { editSheetState.hide() }.invokeOnCompletion { editBlock = null }
+            },
+            onDelete = {
+                vm.deleteBlock(block)
+                scope.launch { editSheetState.hide() }.invokeOnCompletion { editBlock = null }
+            },
+            onCopyToNow = {
+                vm.copyBlockToNow(block)
+                scope.launch { editSheetState.hide() }.invokeOnCompletion { editBlock = null }
+            },
+            sheetState = editSheetState
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuickAddSheet(
-    onDismiss: () -> Unit,
-    onAdd: (Long?, Int, String) -> Unit,
-    sheetState: SheetState,
-    defaultDayEpoch: Long
+private fun ScheduleBlockCard(
+    block: ScheduleBlock,
+    isCurrent: Boolean,
+    eligibleForCheckIn: Boolean,
+    editable: Boolean,
+    onCheckIn: () -> Unit,
+    onEdit: () -> Unit
 ) {
-    val context = LocalContext.current
-    var title by remember { mutableStateOf("") }
-    var minutes by remember { mutableStateOf(480) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDayEpoch by remember { mutableStateOf<Long?>(null) }
-    val dateState = rememberDatePickerState()
-    var showTimePicker by remember { mutableStateOf(false) }
-
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Task name") })
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = { showDatePicker = true }) { Text(if (selectedDayEpoch != null) "Change date" else "Pick date") }
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = { showTimePicker = true }) { Text("Pick time") }
-            Spacer(Modifier.height(8.dp))
-            val selectedTime = String.format("%02d:%02d", minutes/60, minutes%60)
-            Row { Text("Selected time: $selectedTime") }
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = { if (title.isNotBlank()) onAdd(selectedDayEpoch ?: defaultDayEpoch, minutes, title) }) { Text("Add") }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-
-    if (showTimePicker) {
-        LaunchedEffect(Unit) {
-            val dialog = TimePickerDialog(context, { _, h, m ->
-                minutes = h * 60 + m
-            }, minutes/60, minutes%60, true)
-            dialog.setOnDismissListener { showTimePicker = false }
-            dialog.show()
-        }
-    }
-
-    if (showDatePicker) {
-            DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                Button(onClick = {
-                    val millis = dateState.selectedDateMillis
-                    if (millis != null) {
-                        // Normalize to UTC midnight for dayEpoch
-                        selectedDayEpoch = java.time.Instant.ofEpochMilli(millis)
-                            .atZone(java.time.ZoneOffset.UTC)
-                            .toLocalDate()
-                            .atStartOfDay()
-                            .toInstant(java.time.ZoneOffset.UTC)
-                            .toEpochMilli()
-                    }
-                    showDatePicker = false
-                }) { Text("Use date") }
-            },
-            dismissButton = { Button(onClick = { showDatePicker = false }) { Text("Cancel") } }
+    val containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+    val contentColor = if (isCurrent) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = eligibleForCheckIn, onClick = onCheckIn),
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            DatePicker(state = dateState)
+            Column(modifier = Modifier.size(width = 56.dp, height = 40.dp)) {
+                Text(formatMinutes(block.startMinute), style = MaterialTheme.typography.titleSmall, color = contentColor)
+                Text(
+                    formatMinutes(block.startMinute + block.durationMinutes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                if (isCurrent) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.PlayCircle, contentDescription = null, tint = contentColor, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.size(4.dp))
+                        Text("Now", style = MaterialTheme.typography.labelSmall, color = contentColor)
+                    }
+                }
+                Text(block.title, style = MaterialTheme.typography.titleMedium, color = contentColor)
+                block.tag?.let { tag ->
+                    Spacer(Modifier.height(4.dp))
+                    SuggestionChip(onClick = {}, label = { Text(tag) })
+                }
+            }
+            if (eligibleForCheckIn) {
+                Icon(Icons.Outlined.RadioButtonUnchecked, contentDescription = "Tap to check in", tint = contentColor)
+            }
+            if (editable) {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Outlined.Edit, contentDescription = "Edit task", tint = contentColor)
+                }
+            }
         }
     }
 }
-private fun formatMinutes(m: Int): String {
-    val h = m / 60
-    val min = m % 60
+
+@Composable
+private fun EmptySchedule() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                Icons.Outlined.CalendarMonth,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(12.dp))
+            Text("Nothing planned yet", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Let's block out your day — tap + to add the first task.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun minutesSinceLocalMidnight(dayEpoch: Long): Int {
+    val diff = System.currentTimeMillis() - dayEpoch
+    return (diff / 60_000L).toInt()
+}
+
+internal fun formatMinutes(m: Int): String {
+    val mm = ((m % (24 * 60)) + (24 * 60)) % (24 * 60)
+    val h = mm / 60
+    val min = mm % 60
     return String.format("%02d:%02d", h, min)
 }
