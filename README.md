@@ -66,6 +66,11 @@ See the implementation guide in [CLAUDE.md](CLAUDE.md) and the full product spec
 ./gradlew testDebugUnitTest
 ```
 
+### Continuous Integration
+Automated build and tests run on every push/PR to `main` via GitHub Actions.
+
+Status: ![Android CI](https://github.com/itswael/KronoSync/actions/workflows/ci.yml/badge.svg)
+
 ## Permissions & Behavior
 - Exact alarms: prompts with a plain‑language explanation before directing to system settings. Required for minute‑accurate start alerts on Android 12+.
 - Notifications: requested at runtime on Android 13+.
