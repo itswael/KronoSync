@@ -111,8 +111,8 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel(), settingsVm: Sett
             block = block,
             use24Hour = use24Hour,
             onDismiss = { editBlock = null },
-            onSave = { startMinute, durationMinutes, title ->
-                vm.updateBlock(block, startMinute, durationMinutes, title)
+            onSave = { startMinute, durationMinutes, title, lockIn ->
+                vm.updateBlock(block, startMinute, durationMinutes, title, lockIn)
                 scope.launch { editSheetState.hide() }.invokeOnCompletion { editBlock = null }
             },
             onDelete = {

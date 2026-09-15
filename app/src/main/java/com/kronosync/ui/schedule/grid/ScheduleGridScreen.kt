@@ -140,8 +140,8 @@ fun ScheduleGridScreen(
             block = block,
             use24Hour = use24Hour,
             onDismiss = { editing = null },
-            onSave = { startMinute, durationMinutes, title ->
-                scheduleVm.updateBlock(block, startMinute, durationMinutes, title)
+            onSave = { startMinute, durationMinutes, title, lockIn ->
+                scheduleVm.updateBlock(block, startMinute, durationMinutes, title, lockIn)
                 scope.launch { editSheetState.hide() }.invokeOnCompletion { editing = null }
             },
             onDelete = {

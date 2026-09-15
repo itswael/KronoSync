@@ -41,6 +41,8 @@ class AlarmScheduler @Inject constructor(
             putExtra(EXTRA_DAY_EPOCH, block.dayEpoch)
             putExtra(EXTRA_START_MINUTE, block.startMinute)
             putExtra(EXTRA_TITLE, block.title)
+            putExtra(EXTRA_DURATION_MINUTES, block.durationMinutes)
+            putExtra(EXTRA_LOCK_IN, block.lockIn)
         }
         return PendingIntent.getBroadcast(
             context,
@@ -60,5 +62,7 @@ class AlarmScheduler @Inject constructor(
         const val EXTRA_DAY_EPOCH = "day_epoch"
         const val EXTRA_START_MINUTE = "start_minute"
         const val EXTRA_TITLE = "title"
+        const val EXTRA_DURATION_MINUTES = "duration_minutes"
+        const val EXTRA_LOCK_IN = "lock_in"
     }
 }

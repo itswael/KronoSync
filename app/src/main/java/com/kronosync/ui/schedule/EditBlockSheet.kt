@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -42,7 +44,7 @@ fun EditBlockSheet(
     block: ScheduleBlock,
     use24Hour: Boolean,
     onDismiss: () -> Unit,
-    onSave: (startMinute: Int, durationMinutes: Int, title: String) -> Unit,
+    onSave: (startMinute: Int, durationMinutes: Int, title: String, lockIn: Boolean) -> Unit,
     onDelete: () -> Unit,
     onCopyToNow: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -50,6 +52,7 @@ fun EditBlockSheet(
     var title by remember { mutableStateOf(block.title) }
     var minutes by remember { mutableStateOf(block.startMinute) }
     var durationMinutes by remember { mutableStateOf(block.durationMinutes) }
+    var lockIn by remember { mutableStateOf(block.lockIn) }
     var showTimePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -65,6 +68,22 @@ fun EditBlockSheet(
             )
             Spacer(Modifier.height(12.dp))
             SuggestionChip(onClick = { showTimePicker = true }, label = { Text("Starts at " + TimeFormat.minutesLabel(minutes, use24Hour)) })
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Lock-in", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "Locks your phone to just this app, camera, and calls for the task's duration.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(checked = lockIn, onCheckedChange = { lockIn = it })
+            }
             Spacer(Modifier.height(16.dp))
             Text("Duration", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(8.dp))
@@ -79,7 +98,7 @@ fun EditBlockSheet(
             }
             Spacer(Modifier.height(20.dp))
             Button(
-                onClick = { if (title.isNotBlank()) onSave(minutes, durationMinutes, title) },
+                onClick = { if (title.isNotBlank()) onSave(minutes, durationMinutes, title, lockIn) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank()
             ) { Text("Save changes") }

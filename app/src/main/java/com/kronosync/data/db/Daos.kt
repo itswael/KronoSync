@@ -89,3 +89,18 @@ interface AppSettingsDao {
     @Query("SELECT * FROM app_settings WHERE id = 0")
     suspend fun get(): AppSettings?
 }
+
+@Dao
+interface LockInSessionDao {
+    @Insert
+    suspend fun insert(session: LockInSession): Long
+
+    @Update
+    suspend fun update(session: LockInSession)
+
+    @Query("SELECT * FROM lock_in_sessions WHERE id = :id")
+    suspend fun get(id: Long): LockInSession?
+
+    @Query("SELECT * FROM lock_in_sessions WHERE endedAt IS NOT NULL AND cancelled = 0 AND startedAt BETWEEN :start AND :end")
+    suspend fun getCompletedBetween(start: Long, end: Long): List<LockInSession>
+}

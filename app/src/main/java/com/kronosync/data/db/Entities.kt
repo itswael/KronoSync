@@ -23,7 +23,19 @@ data class ScheduleBlock(
     val durationMinutes: Int,
     val title: String,
     val tag: String? = null,
-    val templateId: Long? = null // provenance only; not a live link
+    val templateId: Long? = null, // provenance only; not a live link
+    val lockIn: Boolean = false // if true, Lock-In Mode auto-engages when this block starts, for its duration
+)
+
+@Entity(tableName = "lock_in_sessions")
+data class LockInSession(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val blockId: Long?, // null for an ad-hoc session
+    val startedAt: Long,
+    val endedAt: Long?, // null while a session is still running
+    val plannedMinutes: Int,
+    val breaksUsed: Int = 0,
+    val cancelled: Boolean = false // true if the user backed out during the F5 countdown or ended it early
 )
 
 @Entity(tableName = "daily_log_entries")

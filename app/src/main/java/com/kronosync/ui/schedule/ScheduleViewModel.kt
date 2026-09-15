@@ -52,13 +52,14 @@ class ScheduleViewModel @Inject constructor(
         }
     }
 
-    fun addBlockFor(dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String) {
+    fun addBlockFor(dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String, lockIn: Boolean = false) {
         viewModelScope.launch {
             val block = ScheduleBlock(
                 dayEpoch = dayEpoch,
                 startMinute = startMinute,
                 durationMinutes = durationMinutes,
-                title = title
+                title = title,
+                lockIn = lockIn
             )
             val id = repo.add(block)
             val saved = block.copy(id = id)
@@ -66,10 +67,10 @@ class ScheduleViewModel @Inject constructor(
         }
     }
 
-    fun updateBlock(block: ScheduleBlock, startMinute: Int, durationMinutes: Int, title: String) {
+    fun updateBlock(block: ScheduleBlock, startMinute: Int, durationMinutes: Int, title: String, lockIn: Boolean = block.lockIn) {
         viewModelScope.launch {
             alarmScheduler.cancel(block)
-            val updated = block.copy(startMinute = startMinute, durationMinutes = durationMinutes, title = title)
+            val updated = block.copy(startMinute = startMinute, durationMinutes = durationMinutes, title = title, lockIn = lockIn)
             repo.update(updated)
             scheduleAlarm(updated)
         }

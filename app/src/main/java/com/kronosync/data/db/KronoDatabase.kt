@@ -9,9 +9,10 @@ import androidx.room.RoomDatabase
         ScheduleBlock::class,
         DailyLogEntry::class,
         BackupSettings::class,
-        AppSettings::class
+        AppSettings::class,
+        LockInSession::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class KronoDatabase : RoomDatabase() {
@@ -20,4 +21,5 @@ abstract class KronoDatabase : RoomDatabase() {
     abstract fun dailyLogEntryDao(): DailyLogEntryDao
     abstract fun backupSettingsDao(): BackupSettingsDao
     abstract fun appSettingsDao(): AppSettingsDao
+    abstract fun lockInSessionDao(): LockInSessionDao
 }

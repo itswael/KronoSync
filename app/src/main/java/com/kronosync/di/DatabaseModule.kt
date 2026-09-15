@@ -39,6 +39,9 @@ object DatabaseModule {
     fun provideAppSettingsDao(db: KronoDatabase) = db.appSettingsDao()
 
     @Provides
+    fun provideLockInSessionDao(db: KronoDatabase) = db.lockInSessionDao()
+
+    @Provides
     @Singleton
     fun provideDriveBackupService(@ApplicationContext context: Context): DriveBackupService = DriveBackupService(context)
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FormatQuote
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PauseCircle
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.automirrored.outlined.TrendingDown
@@ -63,7 +64,8 @@ class AnalyticsViewModel @Inject constructor(
         val previousDone: Int = 0,
         val previousPartial: Int = 0,
         val previousSkipped: Int = 0,
-        val activity: List<AnalyticsAggregator.ActivitySlice> = emptyList()
+        val activity: List<AnalyticsAggregator.ActivitySlice> = emptyList(),
+        val lockIn: AnalyticsAggregator.LockInSummary = AnalyticsAggregator.LockInSummary(0, 0)
     )
 
     var state = mutableStateOf(UiState())
@@ -75,7 +77,8 @@ class AnalyticsViewModel @Inject constructor(
         viewModelScope.launch {
             val start = DayEpoch.of(day)
             val prevStart = DayEpoch.of(day.minusDays(1))
-            apply(agg.daySummary(start), agg.daySummary(prevStart), emptyList())
+            val lockIn = agg.lockInSummary(start, DayEpoch.of(day.plusDays(1)) - 1)
+            apply(agg.daySummary(start), agg.daySummary(prevStart), emptyList(), lockIn)
         }
     }
 
@@ -84,8 +87,10 @@ class AnalyticsViewModel @Inject constructor(
             val weekStart = WeekStart.of(dayInWeek)
             val start = DayEpoch.of(weekStart)
             val prevStart = DayEpoch.of(weekStart.minusWeeks(1))
-            val activity = agg.activityBreakdown(start, DayEpoch.of(weekStart.plusWeeks(1)))
-            apply(agg.weekSummary(start), agg.weekSummary(prevStart), activity)
+            val end = DayEpoch.of(weekStart.plusWeeks(1))
+            val activity = agg.activityBreakdown(start, end)
+            val lockIn = agg.lockInSummary(start, end - 1)
+            apply(agg.weekSummary(start), agg.weekSummary(prevStart), activity, lockIn)
         }
     }
 
@@ -96,12 +101,19 @@ class AnalyticsViewModel @Inject constructor(
             val days = month.lengthOfMonth()
             val prevMonthStart = monthStart.minusMonths(1)
             val prevStart = DayEpoch.of(prevMonthStart)
-            val activity = agg.activityBreakdown(start, DayEpoch.of(monthStart.plusMonths(1)))
-            apply(agg.monthSummary(start, days), agg.monthSummary(prevStart, prevMonthStart.lengthOfMonth()), activity)
+            val end = DayEpoch.of(monthStart.plusMonths(1))
+            val activity = agg.activityBreakdown(start, end)
+            val lockIn = agg.lockInSummary(start, end - 1)
+            apply(agg.monthSummary(start, days), agg.monthSummary(prevStart, prevMonthStart.lengthOfMonth()), activity, lockIn)
         }
     }
 
-    private fun apply(current: AnalyticsAggregator.Summary, previous: AnalyticsAggregator.Summary, activity: List<AnalyticsAggregator.ActivitySlice>) {
+    private fun apply(
+        current: AnalyticsAggregator.Summary,
+        previous: AnalyticsAggregator.Summary,
+        activity: List<AnalyticsAggregator.ActivitySlice>,
+        lockIn: AnalyticsAggregator.LockInSummary
+    ) {
         state.value = UiState(
             done = current.done,
             partial = current.partial,
@@ -109,9 +121,20 @@ class AnalyticsViewModel @Inject constructor(
             previousDone = previous.done,
             previousPartial = previous.partial,
             previousSkipped = previous.skipped,
-            activity = activity
+            activity = activity,
+            lockIn = lockIn
         )
         quote.value = quotes.pick(current.done, current.partial, current.skipped)
+    }
+}
+
+private fun formatLockInMinutes(minutes: Int): String {
+    val h = minutes / 60
+    val m = minutes % 60
+    return when {
+        h == 0 -> "${m}m"
+        m == 0 -> "${h}h"
+        else -> "${h}h ${m}m"
     }
 }
 
@@ -190,6 +213,28 @@ private fun AnalyticsBody(ui: AnalyticsViewModel.UiState, quote: String, periodL
             )
         }
         TrendLine(periodLabel, ui.done, ui.previousDone)
+
+        if (ui.lockIn.totalMinutes > 0) {
+            Card {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Time in Lock-In", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            "Task-linked ${ui.lockIn.taskLinkedMinutes}m · Ad-hoc ${ui.lockIn.adHocMinutes}m",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        formatLockInMinutes(ui.lockIn.totalMinutes),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
 
         if (ui.activity.isNotEmpty()) {
             Card {

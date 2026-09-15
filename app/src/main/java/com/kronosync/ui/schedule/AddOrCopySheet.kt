@@ -60,7 +60,7 @@ private fun pickedLocalDate(millis: Long): LocalDate =
 @Composable
 fun AddOrCopySheet(
     onDismiss: () -> Unit,
-    onAddTask: (dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String) -> Unit,
+    onAddTask: (dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String, lockIn: Boolean) -> Unit,
     onCopyDay: (List<Long>) -> Unit,
     onCopyWeek: (targetWeekStartEpoch: Long) -> Unit,
     defaultDayEpoch: Long,
@@ -96,12 +96,13 @@ fun AddOrCopySheet(
 private fun NewTaskForm(
     defaultDayEpoch: Long,
     use24Hour: Boolean,
-    onAdd: (dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String) -> Unit
+    onAdd: (dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String, lockIn: Boolean) -> Unit
 ) {
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var minutes by remember { mutableStateOf(java.time.LocalTime.now().let { it.hour * 60 + (it.minute / 15) * 15 }) }
     var durationMinutes by remember { mutableStateOf(60) }
+    var lockIn by remember { mutableStateOf(false) }
     var selectedDayEpoch by remember { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -121,6 +122,22 @@ private fun NewTaskForm(
             SuggestionChip(onClick = { showDatePicker = true }, label = { Text(if (selectedDayEpoch != null) "Change date" else "Today") })
             SuggestionChip(onClick = { showTimePicker = true }, label = { Text(TimeFormat.minutesLabel(minutes, use24Hour)) })
         }
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Lock-in", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "Locks your phone to just this app, camera, and calls for the task's duration.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            androidx.compose.material3.Switch(checked = lockIn, onCheckedChange = { lockIn = it })
+        }
         Spacer(Modifier.height(16.dp))
         Text("Duration", style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(8.dp))
@@ -135,7 +152,7 @@ private fun NewTaskForm(
         }
         Spacer(Modifier.height(20.dp))
         Button(
-            onClick = { if (title.isNotBlank()) onAdd(selectedDayEpoch ?: defaultDayEpoch, minutes, durationMinutes, title) },
+            onClick = { if (title.isNotBlank()) onAdd(selectedDayEpoch ?: defaultDayEpoch, minutes, durationMinutes, title, lockIn) },
             modifier = Modifier.fillMaxWidth(),
             enabled = title.isNotBlank()
         ) { Text("Add") }

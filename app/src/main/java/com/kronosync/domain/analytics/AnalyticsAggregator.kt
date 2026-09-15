@@ -2,14 +2,19 @@ package com.kronosync.domain.analytics
 
 import com.kronosync.data.db.DailyLogEntryDao
 import com.kronosync.data.db.ScheduleBlockDao
+import com.kronosync.data.repository.LockInRepository
 import javax.inject.Inject
 
 class AnalyticsAggregator @Inject constructor(
     private val dao: DailyLogEntryDao,
-    private val blockDao: ScheduleBlockDao
+    private val blockDao: ScheduleBlockDao,
+    private val lockInRepo: LockInRepository
 ) {
     data class Summary(val done: Int, val partial: Int, val skipped: Int)
     data class ActivitySlice(val label: String, val minutes: Int)
+    data class LockInSummary(val adHocMinutes: Int, val taskLinkedMinutes: Int) {
+        val totalMinutes: Int get() = adHocMinutes + taskLinkedMinutes
+    }
 
     suspend fun summaryBetween(start: Long, end: Long): Summary {
         val logs = dao.getBetween(start, end)
@@ -56,5 +61,13 @@ class AnalyticsAggregator @Inject constructor(
         val top = byLabel.take(maxSlices).map { (label, minutes) -> ActivitySlice(label, minutes) }
         val otherMinutes = byLabel.drop(maxSlices).sumOf { it.second }
         return if (otherMinutes > 0) top + ActivitySlice("Other", otherMinutes) else top
+    }
+
+    /** Minutes actually spent locked in (completed sessions only), split ad-hoc vs. task-linked. */
+    suspend fun lockInSummary(start: Long, end: Long): LockInSummary {
+        val sessions = lockInRepo.completedMinutesBetween(start, end)
+        val adHoc = sessions.filter { it.blockId == null }.sumOf { it.plannedMinutes }
+        val taskLinked = sessions.filter { it.blockId != null }.sumOf { it.plannedMinutes }
+        return LockInSummary(adHoc, taskLinked)
     }
 }
