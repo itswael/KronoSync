@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kronosync.data.db.ScheduleBlock
+import com.kronosync.util.TimeFormat
 
 private val DurationOptionsMinutes = listOf(15, 30, 45, 60, 90, 120)
 
@@ -39,6 +40,7 @@ private val DurationOptionsMinutes = listOf(15, 30, 45, 60, 90, 120)
 @Composable
 fun EditBlockSheet(
     block: ScheduleBlock,
+    use24Hour: Boolean,
     onDismiss: () -> Unit,
     onSave: (startMinute: Int, durationMinutes: Int, title: String) -> Unit,
     onDelete: () -> Unit,
@@ -62,7 +64,7 @@ fun EditBlockSheet(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.dp))
-            SuggestionChip(onClick = { showTimePicker = true }, label = { Text(String.format("Starts at %02d:%02d", minutes / 60, minutes % 60)) })
+            SuggestionChip(onClick = { showTimePicker = true }, label = { Text("Starts at " + TimeFormat.minutesLabel(minutes, use24Hour)) })
             Spacer(Modifier.height(16.dp))
             Text("Duration", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.height(8.dp))
@@ -97,7 +99,7 @@ fun EditBlockSheet(
         LaunchedEffect(Unit) {
             val dialog = TimePickerDialog(context, { _, h, m ->
                 minutes = h * 60 + m
-            }, minutes / 60, minutes % 60, true)
+            }, minutes / 60, minutes % 60, use24Hour)
             dialog.setOnDismissListener { showTimePicker = false }
             dialog.show()
         }

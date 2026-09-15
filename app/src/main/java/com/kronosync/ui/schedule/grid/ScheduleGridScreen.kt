@@ -42,7 +42,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.kronosync.data.db.ScheduleBlock
 import com.kronosync.ui.schedule.EditBlockSheet
 import com.kronosync.ui.schedule.ScheduleViewModel
+import com.kronosync.ui.settings.SettingsViewModel
 import com.kronosync.ui.theme.StatusColors
+import com.kronosync.util.TimeFormat
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -52,15 +54,17 @@ import java.util.Locale
 
 private const val PX_PER_MINUTE = 0.7f
 private val DAY_COLUMN_WIDTH = 108.dp
-private val HOUR_RULER_WIDTH = 40.dp
+private val HOUR_RULER_WIDTH = 44.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScheduleGridScreen(
     gridVm: WeekGridViewModel = hiltViewModel(),
-    scheduleVm: ScheduleViewModel = hiltViewModel()
+    scheduleVm: ScheduleViewModel = hiltViewModel(),
+    settingsVm: SettingsViewModel = hiltViewModel()
 ) {
     val ui by gridVm.state.collectAsState()
+    val use24Hour = settingsVm.state.collectAsState().value.app.use24HourClock
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     var editing by remember { mutableStateOf<ScheduleBlock?>(null) }
     val editSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -117,7 +121,7 @@ fun ScheduleGridScreen(
             }
 
             Row(modifier = Modifier.fillMaxSize().verticalScroll(verticalScroll)) {
-                HourRuler()
+                HourRuler(use24Hour)
                 Row(modifier = Modifier.horizontalScroll(horizontalScroll)) {
                     ui.days.forEach { day ->
                         DayColumn(
@@ -134,6 +138,7 @@ fun ScheduleGridScreen(
     editing?.let { block ->
         EditBlockSheet(
             block = block,
+            use24Hour = use24Hour,
             onDismiss = { editing = null },
             onSave = { startMinute, durationMinutes, title ->
                 scheduleVm.updateBlock(block, startMinute, durationMinutes, title)
@@ -153,12 +158,12 @@ fun ScheduleGridScreen(
 }
 
 @Composable
-private fun HourRuler() {
+private fun HourRuler(use24Hour: Boolean) {
     Column(modifier = Modifier.width(HOUR_RULER_WIDTH)) {
         for (hour in 0 until 24) {
             Box(modifier = Modifier.height((60 * PX_PER_MINUTE).dp)) {
                 Text(
-                    formatHourLabel(hour),
+                    TimeFormat.hourLabel(hour, use24Hour),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp, end = 4.dp).align(Alignment.TopEnd)
@@ -220,11 +225,4 @@ private fun tileColors(blockStatus: WeekGridViewModel.BlockStatus, isDark: Boole
         "Skipped" -> (if (isDark) StatusColors.skippedContainerDark else StatusColors.skippedContainerLight) to (if (isDark) StatusColors.skippedDark else StatusColors.skippedLight)
         else -> MaterialTheme.colorScheme.surfaceContainerHigh to MaterialTheme.colorScheme.onSurface
     }
-}
-
-private fun formatHourLabel(hour: Int): String = when {
-    hour == 0 -> "12 AM"
-    hour < 12 -> "$hour AM"
-    hour == 12 -> "12 PM"
-    else -> "${hour - 12} PM"
 }

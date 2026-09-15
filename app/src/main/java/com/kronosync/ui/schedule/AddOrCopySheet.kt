@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kronosync.util.DayEpoch
+import com.kronosync.util.TimeFormat
 import com.kronosync.util.WeekStart
 import java.time.Instant
 import java.time.LocalDate
@@ -63,6 +64,7 @@ fun AddOrCopySheet(
     onCopyDay: (List<Long>) -> Unit,
     onCopyWeek: (targetWeekStartEpoch: Long) -> Unit,
     defaultDayEpoch: Long,
+    use24Hour: Boolean,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     var mode by remember { mutableStateOf(SheetMode.New) }
@@ -81,7 +83,7 @@ fun AddOrCopySheet(
             Spacer(Modifier.height(16.dp))
 
             when (mode) {
-                SheetMode.New -> NewTaskForm(defaultDayEpoch = defaultDayEpoch, onAdd = onAddTask)
+                SheetMode.New -> NewTaskForm(defaultDayEpoch = defaultDayEpoch, use24Hour = use24Hour, onAdd = onAddTask)
                 SheetMode.CopyDay -> CopyDayForm(onCopy = onCopyDay)
                 SheetMode.CopyWeek -> CopyWeekForm(onCopy = onCopyWeek)
             }
@@ -93,6 +95,7 @@ fun AddOrCopySheet(
 @Composable
 private fun NewTaskForm(
     defaultDayEpoch: Long,
+    use24Hour: Boolean,
     onAdd: (dayEpoch: Long, startMinute: Int, durationMinutes: Int, title: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -116,7 +119,7 @@ private fun NewTaskForm(
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
             SuggestionChip(onClick = { showDatePicker = true }, label = { Text(if (selectedDayEpoch != null) "Change date" else "Today") })
-            SuggestionChip(onClick = { showTimePicker = true }, label = { Text(String.format("%02d:%02d", minutes / 60, minutes % 60)) })
+            SuggestionChip(onClick = { showTimePicker = true }, label = { Text(TimeFormat.minutesLabel(minutes, use24Hour)) })
         }
         Spacer(Modifier.height(16.dp))
         Text("Duration", style = MaterialTheme.typography.labelLarge)
@@ -143,7 +146,7 @@ private fun NewTaskForm(
         androidx.compose.runtime.LaunchedEffect(Unit) {
             val dialog = TimePickerDialog(context, { _, h, m ->
                 minutes = h * 60 + m
-            }, minutes / 60, minutes % 60, true)
+            }, minutes / 60, minutes % 60, use24Hour)
             dialog.setOnDismissListener { showTimePicker = false }
             dialog.show()
         }

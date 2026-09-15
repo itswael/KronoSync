@@ -74,6 +74,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { settingsRepo.upsert(_state.value.app.copy(amoledTrueBlack = enabled)) }
     }
 
+    fun setUse24HourClock(enabled: Boolean) {
+        viewModelScope.launch { settingsRepo.upsert(_state.value.app.copy(use24HourClock = enabled)) }
+    }
+
     fun setCheckInMinutes(mins: Int) {
         viewModelScope.launch { settingsRepo.upsert(_state.value.app.copy(checkInBatchMinutes = mins)) }
     }

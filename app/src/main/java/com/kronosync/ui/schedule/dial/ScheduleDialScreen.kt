@@ -39,13 +39,15 @@ import androidx.compose.ui.unit.dp
 import com.kronosync.data.db.ScheduleBlock
 import com.kronosync.domain.quotes.QuoteBank
 import com.kronosync.ui.schedule.ScheduleViewModel
-import com.kronosync.ui.schedule.formatMinutes
+import com.kronosync.ui.settings.SettingsViewModel
+import com.kronosync.util.TimeFormat
 import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun ScheduleDialScreen(vm: ScheduleViewModel = hiltViewModel()) {
+fun ScheduleDialScreen(vm: ScheduleViewModel = hiltViewModel(), settingsVm: SettingsViewModel = hiltViewModel()) {
     val ui by vm.state.collectAsState()
+    val use24Hour = settingsVm.state.collectAsState().value.app.use24HourClock
     var nowMinute by remember { mutableIntStateOf(minutesSinceLocalMidnight(ui.dayEpoch)) }
 
     LaunchedEffect(ui.dayEpoch) {
@@ -73,7 +75,7 @@ fun ScheduleDialScreen(vm: ScheduleViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(28.dp))
-        FocusRing(current = current, next = next, nowMinute = nowMinute)
+        FocusRing(current = current, next = next, nowMinute = nowMinute, use24Hour = use24Hour)
         Spacer(Modifier.height(36.dp))
         QuoteCard(quote)
     }
@@ -98,7 +100,7 @@ private fun QuoteCard(quote: String) {
 }
 
 @Composable
-private fun FocusRing(current: ScheduleBlock?, next: ScheduleBlock?, nowMinute: Int) {
+private fun FocusRing(current: ScheduleBlock?, next: ScheduleBlock?, nowMinute: Int, use24Hour: Boolean) {
     val diameter = 268.dp
     val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
     val progressColor = MaterialTheme.colorScheme.primary
@@ -145,7 +147,7 @@ private fun FocusRing(current: ScheduleBlock?, next: ScheduleBlock?, nowMinute: 
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "${formatMinutes(current.startMinute)} – ${formatMinutes(current.startMinute + current.durationMinutes)}",
+                    "${TimeFormat.minutesLabel(current.startMinute, use24Hour)} – ${TimeFormat.minutesLabel(current.startMinute + current.durationMinutes, use24Hour)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

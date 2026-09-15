@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.kronosync.data.alarm.ExactAlarmPermission
 import com.kronosync.ui.schedule.grid.ScheduleGridScreen
 import com.kronosync.ui.schedule.dial.ScheduleDialScreen
+import com.kronosync.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
 private enum class ScheduleView(val label: String) {
@@ -45,8 +46,9 @@ private enum class ScheduleView(val label: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(vm: ScheduleViewModel = hiltViewModel()) {
+fun ScheduleScreen(vm: ScheduleViewModel = hiltViewModel(), settingsVm: SettingsViewModel = hiltViewModel()) {
     val ui by vm.state.collectAsState()
+    val use24Hour = settingsVm.state.collectAsState().value.app.use24HourClock
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -106,6 +108,7 @@ fun ScheduleScreen(vm: ScheduleViewModel = hiltViewModel()) {
                 scope.launch { sheetState.hide() }.invokeOnCompletion { showAddSheet = false }
             },
             defaultDayEpoch = ui.dayEpoch,
+            use24Hour = use24Hour,
             sheetState = sheetState
         )
     }

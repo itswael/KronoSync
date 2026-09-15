@@ -7,6 +7,7 @@ import com.kronosync.data.repository.ScheduleRepository
 import com.kronosync.data.repository.CheckInRepository
 import com.kronosync.data.alarm.AlarmScheduler
 import com.kronosync.data.alarm.Rescheduler
+import com.kronosync.ui.notifications.Notifier
 import com.kronosync.util.DayEpoch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,8 @@ class ScheduleViewModel @Inject constructor(
     private val alarmScheduler: AlarmScheduler,
     private val copyDay: CopyDayUseCase,
     private val rescheduler: Rescheduler,
-    private val checkInRepo: CheckInRepository
+    private val checkInRepo: CheckInRepository,
+    private val notifier: Notifier
 ) : ViewModel() {
 
     data class UiState(
@@ -125,5 +127,6 @@ class ScheduleViewModel @Inject constructor(
         viewModelScope.launch {
             checkInRepo.log(blockId, status)
         }
+        notifier.cancelStartNotification(blockId)
     }
 }

@@ -18,7 +18,7 @@ data class Template(
 @Entity(tableName = "schedule_blocks")
 data class ScheduleBlock(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    @ColumnInfo(index = true) val dayEpoch: Long, // midnight millis in UTC for the day
+    @ColumnInfo(index = true) val dayEpoch: Long, // midnight millis in the device's local zone for the day (see util/DayEpoch)
     val startMinute: Int, // minutes from midnight
     val durationMinutes: Int,
     val title: String,
@@ -51,5 +51,6 @@ data class AppSettings(
     val checkInBatchMinutes: Int = 30,
     val quoteFrequency: Int = 1, // 0: off, 1: low, 2: medium, 3: high
     val backupOptInDismissed: Boolean = false,
-    val backupOptInPromptedAt: Long? = null
+    val backupOptInPromptedAt: Long? = null,
+    val use24HourClock: Boolean = false
 )

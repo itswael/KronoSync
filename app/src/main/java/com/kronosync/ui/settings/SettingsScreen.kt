@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -77,6 +78,12 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
                 headlineContent = { Text("AMOLED true black") },
                 supportingContent = { Text("Deeper dark theme that saves battery on OLED screens.") },
                 trailingContent = { Switch(checked = ui.app.amoledTrueBlack, onCheckedChange = { vm.setAmoled(it) }) }
+            )
+            ListItem(
+                leadingContent = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
+                headlineContent = { Text("24-hour time") },
+                supportingContent = { Text(if (ui.app.use24HourClock) "14:30" else "2:30 PM") },
+                trailingContent = { Switch(checked = ui.app.use24HourClock, onCheckedChange = { vm.setUse24HourClock(it) }) }
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

@@ -37,6 +37,11 @@ class Notifier @Inject constructor(
         NotificationManagerCompat.from(context).notify(blockId.hashCode(), builder.build())
     }
 
+    /** Clears a block's start-alert notification once its status is decided, from either the notification action or an in-app check-in. */
+    fun cancelStartNotification(blockId: Long) {
+        NotificationManagerCompat.from(context).cancel(blockId.hashCode())
+    }
+
     private fun buildAction(blockId: Long, label: String, status: String): NotificationCompat.Action {
         val intent = Intent(context, CheckInReceiver::class.java).apply {
             action = CheckInReceiver.ACTION_CHECK_IN

@@ -32,6 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import com.kronosync.data.db.ScheduleBlock
 import com.kronosync.ui.checkin.CheckInSheet
+import com.kronosync.ui.settings.SettingsViewModel
+import com.kronosync.util.TimeFormat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
@@ -48,8 +50,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
+fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel(), settingsVm: SettingsViewModel = hiltViewModel()) {
     val ui by vm.state.collectAsState()
+    val use24Hour = settingsVm.state.collectAsState().value.app.use24HourClock
     var checkInBlock by remember { mutableStateOf<ScheduleBlock?>(null) }
     var editBlock by remember { mutableStateOf<ScheduleBlock?>(null) }
     val checkInSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -84,6 +87,7 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
                     isCurrent = isCurrent,
                     eligibleForCheckIn = started,
                     editable = !isPast,
+                    use24Hour = use24Hour,
                     onCheckIn = { checkInBlock = block },
                     onEdit = { editBlock = block }
                 )
@@ -105,6 +109,7 @@ fun ScheduleListScreen(vm: ScheduleViewModel = hiltViewModel()) {
     editBlock?.let { block ->
         EditBlockSheet(
             block = block,
+            use24Hour = use24Hour,
             onDismiss = { editBlock = null },
             onSave = { startMinute, durationMinutes, title ->
                 vm.updateBlock(block, startMinute, durationMinutes, title)
@@ -129,6 +134,7 @@ private fun ScheduleBlockCard(
     isCurrent: Boolean,
     eligibleForCheckIn: Boolean,
     editable: Boolean,
+    use24Hour: Boolean,
     onCheckIn: () -> Unit,
     onEdit: () -> Unit
 ) {
@@ -145,10 +151,10 @@ private fun ScheduleBlockCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.size(width = 56.dp, height = 40.dp)) {
-                Text(formatMinutes(block.startMinute), style = MaterialTheme.typography.titleSmall, color = contentColor)
+            Column(modifier = Modifier.size(width = 72.dp, height = 40.dp)) {
+                Text(TimeFormat.minutesLabel(block.startMinute, use24Hour), style = MaterialTheme.typography.titleSmall, color = contentColor)
                 Text(
-                    formatMinutes(block.startMinute + block.durationMinutes),
+                    TimeFormat.minutesLabel(block.startMinute + block.durationMinutes, use24Hour),
                     style = MaterialTheme.typography.bodySmall,
                     color = contentColor.copy(alpha = 0.7f)
                 )
@@ -204,11 +210,4 @@ private fun EmptySchedule() {
 private fun minutesSinceLocalMidnight(dayEpoch: Long): Int {
     val diff = System.currentTimeMillis() - dayEpoch
     return (diff / 60_000L).toInt()
-}
-
-internal fun formatMinutes(m: Int): String {
-    val mm = ((m % (24 * 60)) + (24 * 60)) % (24 * 60)
-    val h = mm / 60
-    val min = mm % 60
-    return String.format("%02d:%02d", h, min)
 }
